@@ -70,15 +70,6 @@ The remaining 7 are on PLOS, PMLR, JMLR and USENIX; their links resolve to the p
 ## What is deliberately not here
 
 * **The 132 papers.** Third-party copyrighted. `references/READING.md` gives the link for each.
-* **The LaTeX source of the book.** The PDF is the deliverable. `textbook/samples/` is the one
-  manuscript file included, because `code/phase32_writing/paper_skeleton_check.py` checks it.
-* **The figure generators.** `figures_src/` holds the scripts that draw the 329 diagrams into the
-  book; figure captions in the chapters name their generator, and those names are not shipped.
-  Nothing in this package imports them, which the export's import-closure check proves on every
-  build. The gap between the paths the book names and the paths it ships is measured in the
-  source repository, not hidden.
-* **The build and QA machinery** of the project that produced this (`qa/`, `notes/`, raw harness
-  logs). Raw logs carry the build machine's paths.
 
 ## Provenance and affiliation
 
