@@ -4,6 +4,8 @@
 
 **Curated by Wong Ding Jie. Compiled by AI agents.**
 
+> This is a compilation for me to learn all about AI. Feel free to learn from it too!
+
 A 32-phase textbook that goes from matrix arithmetic to a running agent server and then to a
 measurable security experiment. Every derivation is written out. Every number is either derived
 in the text or produced by code in this package, on a machine with no GPU.
