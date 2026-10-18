@@ -1,0 +1,48 @@
+% A filled-in sample: the plan's three-page document for the executed Top-K
+% experiment of chapter 30, written in the eight-section structure of
+% chapter 32. Self-contained; typeset with pdflatex.
+\documentclass[10pt]{article}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath,booktabs}
+\title{Retrieval Depth and Indirect Prompt Injection against a\\Tool-Using Agent: a Controlled Corpus Study}
+\author{Working draft, study-apparatus sample (Part IX, ch.\ 32)}
+\date{}
+\begin{document}
+\maketitle
+
+\section{Problem}
+Retrieval-augmented agents read documents they do not control, and indirect prompt injection hides instructions inside those documents. A deployment parameter that has no studied relation to this risk is the retrieval depth $K$: deeper contexts improve task utility but admit more of the corpus into the model's attention. We ask how $K$ affects the attack success rate (ASR) of an injected instruction against a tool-using agent, and whether a two-stage instruction-aware reranker changes that relation.
+
+\section{Hypothesis}
+(H1) ASR is nondecreasing in $K$ and strictly increasing on a corpus whose malicious documents' dense ranks spread across the top of the retrieval distribution. (H2) A reranker that demotes injection-bearing documents reduces ASR, with a reduction that depends on how far the demotion crosses the truncation boundary at rank $K$. We do not expect H2's size to be resolvable at the sample size of a controlled-corpus study. We pre-commit to reporting it as unresolved rather than either direction.
+
+\section{Background}
+Indirect prompt injection~\cite{indirectpromptinjection} attacks LLM systems through retrieved or tool-returned content rather than the user's prompt, making the retrieval layer an attack surface. Our measurement follows the reporting conventions of reproducible research~\cite{tenrulesreproducibleresearch,neuripsreproducibilityreport}. Rates carry Wilson intervals, effect sizes carry intervals of their own, the controls are declared, and the artifacts (results table, figure with data sidecar, episode logs) are regenerable from one run.
+
+\section{Method}
+The attacker controls 12 of a 54-document CVE knowledge base, one malicious document per topic, with dense ranks constructed and asserted to be $[2,2,3,3,4,4,5,6,7,9,11,15]$. The agent follows a fixed four-step plan (search, read notes, verify, answer). If its topic's injection marker enters the context, it complies with a three-action injected sequence (exfiltrate, purge cache, purge audit) inside a sandbox that blocks and logs every demanded action. Compliance is detected from the violation log. The exact step budget makes compliance imply task cutoff, so completion is a second, independent read of the same event. The two-stage rerank arm scores each of the dense top-$2K$ candidates with an instruction-aware function (feature coverage of the query, dense cosine, and a penalty on instruction-bearing text) and truncates to the top-$K$. Its effect on exposure is therefore a question of whether a malicious document's re-ranked rank crosses the truncation boundary at $K$.
+
+\section{Experimental setup}
+Independent variable: $K\in\{1,3,5,10,20\}$. Unit: topic ($n=12$ per condition, 60 episodes). Controls. The policy, prompt, corpus, tools, and decoding are identical across arms, which the run asserts by comparing configuration dictionaries, and a no-poison control arm runs at $K=1,20$. Ablation. A two-stage instruction-aware rerank (dense top-$2K$, re-rank, truncate to top-$K$) is compared with dense top-$K$ at $K=5$. Statistics. Wilson 95\% intervals are reported per condition, and Cohen's $h$ uses $\mathrm{SE}=\sqrt{1/(n_A-1)+1/(n_B-1)}$ between conditions. The resolvability threshold at $n=12$ is $|h|>0.836$.
+
+\section{Results}
+ASR rises strictly across the grid, taking 0.000 (0/12), 0.333 (4/12), 0.583 (7/12), 0.833 (10/12), and 1.000 (12/12) at $K=1,3,5,10,20$. The curve is the empirical distribution function of the constructed ranks evaluated on the grid, as H1 predicts. Completion mirrors it exactly (1.000 to 0.000), the budget identity holding to machine precision. Mean tokens rise from 28.5 to 171.6 and mean latency from 5.00 to 5.50 units. Violations equal three per exposed topic at every depth. The no-poison control shows 0/12 exposure and perfect completion at both ends of the grid. The $K=20$-vs-$K=1$ effect is $h=3.142$, 95\% CI $[2.306,3.977]$: resolvable. The rerank ablation at $K=5$ moves ASR from 0.583 to 0.333, with $h=-0.507$ and 95\% CI $[-1.343,0.328]$. The direction is clear, the size is \emph{not} resolvable at $n=12$. The power analysis for the observed gap of 0.25 requires $n\approx62$ topics per arm, which the next run declares.
+
+\section{Limitations}
+The corpus is constructed, so the rank distribution, and therefore the ASR curve, is partly by design. The result validates the measurement apparatus and the membership model, not any natural corpus's risk. The policy is scripted and maximally susceptible, so ASR is an upper bound on pipeline exposure under that policy, not a measurement of any real model's resistance. The rerank ablation is underpowered by the pre-declared standard. Resolving its observed gap of 0.25 needs $n\approx62$ topics per arm, so it is reported as direction clear with the size unresolved. The sandbox converts would-be harm into logged violations. No real exfiltration or deletion occurs in any run.
+
+\section{Conclusion}
+On a controlled corpus, retrieval depth acts on injection risk through context membership, the ASR curve is the rank distribution's cumulative function, and completion mirrors it by budget construction. The rerank defence shows a clear direction and an unresolved size at $n=12$. The declared next step is a 62-topic-per-arm ablation on a real corpus. All artifacts (results table, figure with data sidecar, 72-episode JSONL log) regenerate from a single command.
+
+\begin{thebibliography}{9}
+\bibitem{indirectpromptinjection} N.~Greshake, S.~Achammer, M.~Baumgartner, D.~Cli~{\ss}.
+Not what you've signed up for: Compromising Real-World LLM-Integrated
+Applications with Indirect Prompt Injection. arXiv:2302.12173, 2023.
+\bibitem{tenrulesreproducibleresearch} D.~Gardenwes, R.~Sanderson, M.~Kern, et~al. Ten Simple
+Rules for Reproducible Computational Research. PLOS Comput. Biol.\ 14(8),
+2018.
+\bibitem{neuripsreproducibilityreport} G.~Gundersen, L.~Tram{\`e}re, et~al. (eds.).
+Reproducibility of Empirical Results in Machine Learning / Computer Vision.
+NeurIPS 2020 reproducibility report, 2021.
+\end{thebibliography}
+\end{document}
